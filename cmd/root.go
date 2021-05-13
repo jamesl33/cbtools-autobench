@@ -18,19 +18,19 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// rootCommand - Represents the root cbtools-autobench command and encapsulates all the supported sub-commands.
+// rootCommand represents the root cbtools-autobench command and encapsulates all the supported sub-commands.
 var rootCommand = &cobra.Command{
 	Short:         "An automatic benchmarking tool designed to benchmark Couchbase tools",
 	SilenceErrors: true,
 	SilenceUsage:  true,
 }
 
-// init - Initialize the root command by adding all the supported sub-commands.
+// init the root command by adding all the supported sub-commands.
 func init() {
 	rootCommand.AddCommand(provisionCommand, benchmarkCommand)
 }
 
-// Execute - Execute cbtools-autobench, returning any errors raised during the operation of the chosen sub-command.
+// Execute cbtools-autobench, returning any errors raised during the operation of the chosen sub-command.
 func Execute() error {
 	return rootCommand.Execute()
 }

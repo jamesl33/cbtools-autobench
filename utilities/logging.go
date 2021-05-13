@@ -26,7 +26,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// levels - Maps log levels to their string representation.
+// levels maps log levels to their string representation.
 var levels = map[int]string{
 	int(log.DebugLevel): "DEBU",
 	int(log.InfoLevel):  "INFO",
@@ -35,20 +35,20 @@ var levels = map[int]string{
 	int(log.FatalLevel): "FATA",
 }
 
-// LoggingHandler - Handler with implements the apex logging handler interface.
+// LoggingHandler which implements the apex logging handler interface.
 type LoggingHandler struct {
 	mu     sync.Mutex
 	writer io.Writer
 }
 
-// NewLoggingHandler - Create a new LoggingHandler which will log to stdout.
+// NewLoggingHandler creates a new LoggingHandler which will log to stdout.
 func NewLoggingHandler() *LoggingHandler {
 	return &LoggingHandler{
 		writer: os.Stdout,
 	}
 }
 
-// HandleLog - Implement the handler interface for the apex logging module.
+// HandleLog implements the handler interface for the apex logging module.
 func (h *LoggingHandler) HandleLog(e *log.Entry) error {
 	fields, err := json.Marshal(e.Fields)
 	if err != nil {

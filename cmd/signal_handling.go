@@ -23,8 +23,8 @@ import (
 	"github.com/apex/log"
 )
 
-// signalHandler - Spawn a goroutine which gracefully handles SIGINT by cancelling the returned context, this can be
-// used to determine if we need to gracefully terminate.
+// signalHandler spawns a goroutine which gracefully handles SIGINT by cancelling the returned context, this can be used
+// to determine if we need to gracefully terminate.
 func signalHandler() context.Context {
 	ctx, cancelFunc := context.WithCancel(context.Background())
 

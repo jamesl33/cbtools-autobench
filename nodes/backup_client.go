@@ -29,13 +29,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-// BackupClient - Represents a connection to a backup client/node and can be used to perform provisioning/benchmarking.
+// BackupClient represents a connection to a backup client/node and can be used to perform provisioning/benchmarking.
 type BackupClient struct {
 	blueprint *value.BackupClientBlueprint
 	node      *Node
 }
 
-// NewBackupClient - Connect to a backup client using the provided config.
+// NewBackupClient will connect to a backup client using the provided config.
 func NewBackupClient(config *value.SSHConfig, blueprint *value.BackupClientBlueprint) (*BackupClient, error) {
 	node, err := NewNode(config, &value.NodeBlueprint{Host: blueprint.Host})
 	if err != nil {
@@ -48,8 +48,8 @@ func NewBackupClient(config *value.SSHConfig, blueprint *value.BackupClientBluep
 	}, nil
 }
 
-// Provision - Use the client blueprint to provision the backup client, note that if the client is already provisioned
-// it will be re-provisioned i.e. we will remove then install Couchbase.
+// Provision will use the client blueprint to provision the backup client, note that if the client is already
+// provisioned it will be re-provisioned i.e. we will remove then install Couchbase.
 func (b *BackupClient) Provision() error {
 	log.WithField("host", b.blueprint.Host).Info("Provisioning backup client")
 
@@ -68,7 +68,7 @@ func (b *BackupClient) Provision() error {
 	return nil
 }
 
-// CollectLogs - Run 'collect-logs' on the backup client then cp/download the logs into the provided directory.
+// CollectLogs will run 'collect-logs' on the backup client then cp/download the logs into the provided directory.
 func (b *BackupClient) CollectLogs(config *value.BenchmarkConfig, path string) (string, error) {
 	log.WithField("path", path).Info("Collecting 'cbbackupmgr' logs")
 
@@ -104,7 +104,7 @@ func (b *BackupClient) CollectLogs(config *value.BenchmarkConfig, path string) (
 	return sink, nil
 }
 
-// BenchmarkBackup - Run one or more backup benchmarks on the client using the provided benchmark config. If the
+// BenchmarkBackup will run one or more backup benchmarks on the client using the provided benchmark config. If the
 // provided context is cancelled, we will gracefully complete the current backup then return early.
 func (b *BackupClient) BenchmarkBackup(ctx context.Context, config *value.BenchmarkConfig,
 	cluster *Cluster) (value.BenchmarkResults, error) {
@@ -141,7 +141,7 @@ func (b *BackupClient) BenchmarkBackup(ctx context.Context, config *value.Benchm
 	return results, nil
 }
 
-// BenchmarkRestore - Run one or more restore benchmarks on the client using the providing benchmark config. If the
+// BenchmarkRestore will run one or more restore benchmarks on the client using the providing benchmark config. If the
 // provided context is cancelled, we will gracefully complete the current restore then return early.
 func (b *BackupClient) BenchmarkRestore(ctx context.Context, config *value.BenchmarkConfig,
 	cluster *Cluster) (value.BenchmarkResults, error) {
@@ -190,7 +190,7 @@ func (b *BackupClient) BenchmarkRestore(ctx context.Context, config *value.Bench
 	return results, nil
 }
 
-// benchmarkBackup - Run an individual backup benchmark and fetch any data needed to produce a useful report.
+// benchmarkBackup will run an individual backup benchmark and fetch any data needed to produce a useful report.
 func (b *BackupClient) benchmarkBackup(config *value.BenchmarkConfig,
 	cluster *Cluster) (*value.BenchmarkResult, error) {
 	result := &value.BenchmarkResult{}
@@ -223,7 +223,7 @@ func (b *BackupClient) benchmarkBackup(config *value.BenchmarkConfig,
 	return result, nil
 }
 
-// benchmarkRestore - Run an individual restore benchmark and fetch any data needed to produce a useful report.
+// benchmarkRestore will run an individual restore benchmark and fetch any data needed to produce a useful report.
 func (b *BackupClient) benchmarkRestore(config *value.BenchmarkConfig,
 	cluster *Cluster, ads uint64) (*value.BenchmarkResult, error) {
 	result := &value.BenchmarkResult{
@@ -253,7 +253,7 @@ func (b *BackupClient) benchmarkRestore(config *value.BenchmarkConfig,
 	return result, nil
 }
 
-// configureRepository - Run the config sub-command to create a new backup repository.
+// configureRepository wil run the config sub-command to create a new backup repository.
 func (b *BackupClient) createRepository(config *value.BenchmarkConfig) error {
 	log.Info("Creating repository")
 
@@ -262,7 +262,7 @@ func (b *BackupClient) createRepository(config *value.BenchmarkConfig) error {
 	return err
 }
 
-// runPreBenchmarkTasks - Run any pre-benchmark tasks on the backup client. For example, we should always flush the
+// runPreBenchmarkTasks will run any pre-benchmark tasks on the backup client. For example, we should always flush the
 // caches prior to running a benchmark.
 func (b *BackupClient) runPreBenchmarkTasks() error {
 	log.Info("Running backup client pre-benchmark tasks")
@@ -270,7 +270,7 @@ func (b *BackupClient) runPreBenchmarkTasks() error {
 	return b.node.client.FlushCaches()
 }
 
-// createBackup - Create a backup of the provided cluster, note that the 'ignoreBlackhole' argument is required to allow
+// createBackup creates a backup of the provided cluster, note that the 'ignoreBlackhole' argument is required to allow
 // benchmarking restore to blackhole i.e. we must create a backup to restore.
 func (b *BackupClient) createBackup(config *value.BenchmarkConfig, cluster *Cluster,
 	ignoreBlackhole bool) (uint64, error) {
@@ -312,7 +312,8 @@ func (b *BackupClient) createBackup(config *value.BenchmarkConfig, cluster *Clus
 	return decoded.Size, nil
 }
 
-// restoreBackup - Run a restore of the backups in the repository, realistically there should only be a single backup.
+// restoreBackup will run a restore of the backups in the repository, realistically there should only be a single
+// backup.
 func (b *BackupClient) restoreBackup(config *value.BenchmarkConfig, cluster *Cluster) error {
 	fields := log.Fields{
 		"blackhole": config.CBMConfig.Blackhole,
@@ -326,7 +327,7 @@ func (b *BackupClient) restoreBackup(config *value.BenchmarkConfig, cluster *Clu
 	return err
 }
 
-// purgeArchive - Ensure our workspace is clean, we don't want any existing files to get in the way.
+// purgeArchive ensures our workspace is clean, we don't want any existing files to get in the way.
 func (b *BackupClient) purgeArchive(config *value.BenchmarkConfig) error {
 	if !strings.HasPrefix(config.CBMConfig.Archive, "s3://") {
 		log.WithField("archive", config.CBMConfig.Archive).Info("Purging local archive")
@@ -366,7 +367,7 @@ func (b *BackupClient) purgeArchive(config *value.BenchmarkConfig) error {
 	return b.node.client.RemoveDirectory(config.CBMConfig.ObjStagingDirectory)
 }
 
-// purgeBackups - Use the remove sub-command to purged all the backups we've created. Note that we use remove instead of
+// purgeBackups uses the remove sub-command to purged all the backups we've created. Note that we use remove instead of
 // doing this manually so that we don't have to handle removing cloud data i.e. that's handled by cbbackupmgr.
 //
 // NOTE: We only want to purge the backups we created and not the whole archive. We might be collecting the logs upon
@@ -405,7 +406,7 @@ func (b *BackupClient) purgeBackups(config *value.BenchmarkConfig) error {
 	return err
 }
 
-// Close - Close the connection to the backup client.
+// Close the connection to the backup client.
 func (b *BackupClient) Close() error {
 	return b.node.Close()
 }

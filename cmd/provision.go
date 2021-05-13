@@ -22,24 +22,24 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// provisionOptions - Encapsulates the possible options which can be used to change the behavior of the 'provision'
+// provisionOptions encapsulates the possible options which can be used to change the behavior of the 'provision'
 // sub-command.
 var provisionOptions = struct {
 	configPath string
 
-	// loadOnly - Avoid any actual provision i.e. just flush and load the test dataset; this is useful when benchmarking
+	// loadOnly skips actual provisioning i.e. just flush and load the test dataset; this is useful when benchmarking
 	// multiple datasets whilst using the same cluster.
 	loadOnly bool
 }{}
 
-// provisionCommand - The provision sub-command, used to provision a cluster and load a test dataset.
+// provisionCommand is the provision sub-command, used to provision a cluster and load a test dataset.
 var provisionCommand = &cobra.Command{
 	RunE:  provision,
 	Short: "install and configure a cluster and backup client",
 	Use:   "provision",
 }
 
-// init - Initialize the flags/arguments for the provision sub-command.
+// init the flags/arguments for the provision sub-command.
 func init() {
 	provisionCommand.Flags().StringVarP(
 		&provisionOptions.configPath,
@@ -60,8 +60,8 @@ func init() {
 	markFlagRequired(provisionCommand, "config")
 }
 
-// provision - Run the provision sub-command, this will use the provided configuration to provision a cluster/backup
-// client and load a test dataset.
+// provision sub-command, this will use the provided configuration to provision a cluster/backup client and load a test
+// dataset.
 func provision(_ *cobra.Command, _ []string) error {
 	config, err := readConfig(provisionOptions.configPath)
 	if err != nil {

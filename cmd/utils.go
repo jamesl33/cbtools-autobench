@@ -24,7 +24,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// markFlagRequired - Mark the provided flag as required panicking if it was not found.
+// markFlagRequired marks the provided flag as required panicking if it was not found.
 func markFlagRequired(command *cobra.Command, flag string) {
 	err := command.MarkFlagRequired(flag)
 	if err != nil {
@@ -32,7 +32,7 @@ func markFlagRequired(command *cobra.Command, flag string) {
 	}
 }
 
-// readConfig - Utility function to read and decode the autobench config file at the given path.
+// readConfig is a utility function to read and decode the autobench config file at the given path.
 func readConfig(path string) (*value.AutobenchConfig, error) {
 	file, err := os.Open(path)
 	if err != nil {

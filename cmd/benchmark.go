@@ -26,7 +26,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// benchmarkOptions - Encapsulates the possible options which can be used to change the behavior of the 'benchmark'
+// benchmarkOptions encapsulates the possible options which can be used to change the behavior of the 'benchmark'
 // sub-command.
 var benchmarkOptions = struct {
 	configPath string
@@ -34,7 +34,7 @@ var benchmarkOptions = struct {
 	jsonOut    bool
 }{}
 
-// benchmarkCommand - The benchmark sub-command, used to benchmark the 'cbbackupmgr' tool by running multiple
+// benchmarkCommand is the benchmark sub-command, used to benchmark the 'cbbackupmgr' tool by running multiple
 // backups/restores against an already provisioned cluster.
 var benchmarkCommand = &cobra.Command{
 	RunE:      benchmark,
@@ -44,7 +44,7 @@ var benchmarkCommand = &cobra.Command{
 	ValidArgs: []string{"backup", "restore"},
 }
 
-// init - Initialize the flags/arguments for the benchmark sub-command.
+// init the flags/arguments for the benchmark sub-command.
 func init() {
 	benchmarkCommand.Flags().StringVarP(
 		&benchmarkOptions.configPath,
@@ -73,8 +73,8 @@ func init() {
 	markFlagRequired(benchmarkCommand, "config")
 }
 
-// benchmark - Run the benchmark sub-command, this will use the provided configuration to run one or more benchmarks
-// against an already provisioned cluster and then print a report to stdout.
+// benchmark sub-command, this will use the provided configuration to run one or more benchmarks against an already
+// provisioned cluster and then print a report to stdout.
 //
 // NOTE: The report prints information about the cluster/dataset, therefore, it's up to the user to the dataset hasn't
 // changed since it was provisioned.
@@ -138,8 +138,8 @@ func benchmark(_ *cobra.Command, args []string) error {
 	return nil
 }
 
-// collectLogs - Utility function to collect the logs from the cluster/backup archive, note if an empty path is provided
-// the logs will not be collected.
+// collectLogs will collect the logs from the cluster/backup archive, note if an empty path is provided the logs will
+// not be collected.
 func collectLogs(cluster *nodes.Cluster, client *nodes.BackupClient, config *value.BenchmarkConfig,
 	path string) ([]string, string, error) {
 	// We haven't been provided a path by the user, this indicates that they don't want to collect the logs

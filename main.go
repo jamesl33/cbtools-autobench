@@ -26,7 +26,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// main - Setup logging, then execute cbtools-autobench.
+// main will setup logging, then execute cbtools-autobench.
 func main() {
 	log.SetHandler(utilities.NewLoggingHandler())
 
