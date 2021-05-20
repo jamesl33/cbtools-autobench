@@ -69,6 +69,11 @@ type CBMConfig struct {
 	S3LogLevel                string `json:"s3_log_level,omitempty" yaml:"s3_log_level,omitempty"`
 	S3ForcePathStyle          bool   `json:"s3_force_path_style,omitempty" yaml:"s3_force_path_style,omitempty"`
 
+	// Encrypted related arguments
+	Encrypted      bool   `json:"encrypted,omitempty" yaml:"encrypted,omitempty"`
+	Passphrase     string `json:"passphrase,omitempty" yaml:"passphrase,omitempty"`
+	EncryptionAlgo string `json:"encryption_algo,omitempty" yaml:"encryption_algo,omitempty"`
+
 	// NumThreads is the default of threads which will be used by 'cbbackupmgr'. A zero value will allow 'cbbackupmgr'
 	// to automatically determine the number of threads.
 	Threads int `json:"threads,omitempty" yaml:"threads,omitempty"`
@@ -126,6 +131,7 @@ func (c *CBMConfig) CommandConfig() Command {
 
 	command = c.prefixEnvironment(command)
 	command = c.addCloudArgs(command)
+	command = c.addEncryptionArgs(command, true)
 
 	return NewCommand(command)
 }
@@ -141,6 +147,7 @@ func (c *CBMConfig) CommandBackup(host string, ignoreBlackhole bool) Command {
 
 	command = c.prefixEnvironment(command)
 	command = c.addCloudArgs(command)
+	command = c.addEncryptionArgs(command, false)
 	command = c.addStorage(command)
 	command = c.addThreads(command)
 
@@ -164,6 +171,7 @@ func (c *CBMConfig) CommandRestore(host string) Command {
 
 	command = c.prefixEnvironment(command)
 	command = c.addCloudArgs(command)
+	command = c.addEncryptionArgs(command, false)
 	command = c.addThreads(command)
 	command = c.addBlackhole(command)
 
@@ -285,6 +293,27 @@ func (c *CBMConfig) addCloudArgs(command string) string {
 
 	if c.S3ForcePathStyle {
 		command += " --s3-force-path-style"
+	}
+
+	return command
+}
+
+// addEncryptionArgs will conditionally add the provided encryption flags to the given command.
+func (c *CBMConfig) addEncryptionArgs(command string, config bool) string {
+	if !c.Encrypted {
+		return command
+	}
+
+	command += fmt.Sprintf(" --passphrase %s", c.Passphrase)
+
+	if !config {
+		return command
+	}
+
+	command += " --encrypted"
+
+	if c.EncryptionAlgo != "" {
+		command += fmt.Sprintf(" --encryption-algo %s", c.EncryptionAlgo)
 	}
 
 	return command

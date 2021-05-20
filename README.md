@@ -364,6 +364,12 @@ benchmark:
     s3_log_level: ""
     # Pass the '--s3-force-path-style' flag
     s3_force_path_style: false
+    # Pass the '--encrypted' flag
+    encrypted: false
+    # The value passed to '--passphrase'
+    passphrase: ""
+    # The value passed to '--encryption-algo'
+    encryption_algo: ""
     # The value passed to '--threads' (defaults to '--auto-select-threads')
     threads: 0
     # Pass the '--sink blackhole' flag
