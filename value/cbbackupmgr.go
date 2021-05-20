@@ -47,8 +47,6 @@ func (c CBMEnvironment) String() string {
 // machine.
 type CBMConfig struct {
 	// EnvVars is the environment that will be passed to 'cbbackupmgr'.
-	//
-	// TODO (jamesl33) It would be nice if this was part of the output report.
 	EnvVars CBMEnvironment `json:"environment_variables,omitempty" yaml:"environment_variables,omitempty"`
 
 	// Archive/repository that 'cbbackupmgr' will use.
