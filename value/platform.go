@@ -77,7 +77,7 @@ func (p Platform) CommandInstallPackages(packages ...string) Command {
 	case PlatformUbuntu20_04:
 		return NewCommand("apt update && apt install -y %s", strings.Join(packages, " "))
 	case PlatformAmazonLinux2:
-		return NewCommand("yum update && yum install -y %s", strings.Join(packages, " "))
+		return NewCommand("yum update -y && yum install -y %s", strings.Join(packages, " "))
 	}
 
 	panic(fmt.Sprintf("unsupported platform '%s'", p))
