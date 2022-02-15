@@ -76,6 +76,9 @@ type CBMConfig struct {
 	// to automatically determine the number of threads.
 	Threads int `json:"threads,omitempty" yaml:"threads,omitempty"`
 
+	// PointInTime indicates whether the backup repository should be configured for Point-In-Time backups.
+	PointInTime bool `json:"point_in_time,omitempty" yaml:"point_in_time,omitempty"`
+
 	// Blackhole indicates whether the benchmarks should actually backup any data or just pull it from the cluster and
 	// then discard it immediately.
 	Blackhole bool `json:"blackhole,omitempty" yaml:"blackhole,omitempty"`
@@ -104,13 +107,15 @@ func (c *CBMConfig) String() string {
 	}
 
 	fmt.Fprintln(buffer, "| CBM\n| ----")
-	fmt.Fprintf(writer, "| Archive\t Repository \t Staging Directory\t Storage\t Threads\t Blackhole\t\n")
-	fmt.Fprintf(writer, "| %s\t %s\t %s\t %s\t %s\t %t\t\n",
+	fmt.Fprintf(writer, "| Archive\t Repository\t Staging Directory\t Storage\t Threads\t Point-In-Time\t "+
+		"Blackhole\t\n")
+	fmt.Fprintf(writer, "| %s\t %s\t %s\t %s\t %s\t %t\t %t\t\n",
 		c.Archive,
 		c.Repository,
 		staging,
 		storage,
 		threads,
+		c.PointInTime,
 		c.Blackhole)
 
 	_ = writer.Flush()
@@ -130,6 +135,7 @@ func (c *CBMConfig) CommandConfig() Command {
 	command = c.prefixEnvironment(command)
 	command = c.addCloudArgs(command)
 	command = c.addEncryptionArgs(command, true)
+	command = c.addPointInTimeFlag(command)
 
 	return NewCommand(command)
 }
@@ -253,6 +259,15 @@ func (c *CBMConfig) addBlackhole(command string) string {
 	}
 
 	return command + " --sink blackhole"
+}
+
+// addPointInTimeArg will conditionally add the --point-in-time flag to the given command.
+func (c *CBMConfig) addPointInTimeFlag(command string) string {
+	if !c.PointInTime {
+		return command
+	}
+
+	return command + " --point-in-time"
 }
 
 // addCloudArgs will conditionally add the provided cloud flags to the given command.

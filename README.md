@@ -372,6 +372,8 @@ benchmark:
     encryption_algo: ""
     # The value passed to '--threads' (defaults to '--auto-select-threads')
     threads: 0
+    # The value passed to '--point-in-time'
+    point_in_time: false
     # Pass the '--sink blackhole' flag
     blackhole: false
 ```
