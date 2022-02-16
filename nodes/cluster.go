@@ -397,20 +397,28 @@ func (c *Cluster) limitVBuckets() error {
 // on the cluster nodes.
 func (c *Cluster) createBucket() error {
 	fields := log.Fields{
-		"name":            "default",
-		"type":            c.blueprint.Bucket.Type,
-		"eviction_policy": c.blueprint.Bucket.EvictionPolicy,
+		"name":                 "default",
+		"type":                 c.blueprint.Bucket.Type,
+		"eviction_policy":      c.blueprint.Bucket.EvictionPolicy,
+		"pitr_enabled":         c.blueprint.Bucket.PiTREnabled,
+		"pitr_granularity":     c.blueprint.Bucket.PiTRGranularity,
+		"pitr_max_history_age": c.blueprint.Bucket.PiTRMaxHistoryAge,
 	}
 
 	log.WithFields(fields).Info("Creating bucket")
 
-	_, err := c.nodes[0].client.ExecuteCommand(
-		value.NewCommand(`%s couchbase-cli bucket-create --bucket default --bucket-type %s -c localhost:8091 \
+	command := fmt.Sprintf(
+		`%s couchbase-cli bucket-create --bucket default --bucket-type %s -c localhost:8091 \
 			-u Administrator -p asdasd --bucket-ramsize $QUOTA --bucket-eviction-policy %s \
 			--bucket-replica 0 --enable-flush 1 --wait`,
-			memInfo,
-			c.blueprint.Bucket.Type,
-			c.blueprint.Bucket.EvictionPolicy))
+		memInfo,
+		c.blueprint.Bucket.Type,
+		c.blueprint.Bucket.EvictionPolicy,
+	)
+
+	command = c.addPointInTimeArgs(command)
+
+	_, err := c.nodes[0].client.ExecuteCommand(value.NewCommand(command))
 
 	return err
 }
@@ -599,6 +607,23 @@ func (c *Cluster) rebalance() error {
 		value.NewCommand(`couchbase-cli rebalance -c localhost:8091 -u Administrator -p asdasd`))
 
 	return err
+}
+
+// addPointInTimeArgs will conditionally add the PiTR flags to the given command.
+func (c *Cluster) addPointInTimeArgs(command string) string {
+	if c.blueprint.Bucket.PiTREnabled {
+		command += " --enable-point-in-time 1"
+	}
+
+	if c.blueprint.Bucket.PiTRGranularity != 0 {
+		command += fmt.Sprintf(" --point-in-time-granularity %d", c.blueprint.Bucket.PiTRGranularity)
+	}
+
+	if c.blueprint.Bucket.PiTRMaxHistoryAge != 0 {
+		command += fmt.Sprintf(" --point-in-time-max-history-age %d", c.blueprint.Bucket.PiTRMaxHistoryAge)
+	}
+
+	return command
 }
 
 // ConnectionString returns a connection string which can be used to connect to the cluster.

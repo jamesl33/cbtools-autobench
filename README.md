@@ -312,6 +312,12 @@ blueprint:
       eviction_policy: ""
       # Whether to compact the bucket after the data load phase completes
       compact: false
+      # Whether the bucket should have Point-In-Time capability
+      pitr_enabled: false
+      # The granularity of Point-In-Time backups
+      pitr_granularity: 0
+      # The maximum history age of Point-In-Time backups
+      pitr_max_history_age: 0
       # Describes the dataset which will be loaded after provisioning (or via '--load-only')
       data:
         # The number of items to load
