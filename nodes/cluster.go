@@ -98,6 +98,11 @@ func (c *Cluster) Provision() error {
 		return errors.Wrap(err, "failed to initialize Couchbase")
 	}
 
+	err = c.enableDeveloperPreviewMode()
+	if err != nil {
+		return errors.Wrap(err, "failed to enable developer preview mode")
+	}
+
 	// Sometimes it's useful to limit the number of vBuckets in the remote cluster when performing testing which is
 	// scaled to simulate a dataset of a certain size.
 	err = c.limitVBuckets()
@@ -389,6 +394,21 @@ func (c *Cluster) limitVBuckets() error {
 	_, err := c.nodes[0].client.ExecuteCommand(value.NewCommand(
 		`curl -X POST -u Administrator:asdasd localhost:8091/diag/eval -d \
 			"ns_config:set(couchbase_num_vbuckets_default, %d)."`, c.blueprint.Bucket.VBuckets))
+
+	return err
+}
+
+// enableDeveloperPreviewMode enables the developer preview mode for the cluster.
+func (c *Cluster) enableDeveloperPreviewMode() error {
+	if !c.blueprint.DeveloperPreviewEnabled {
+		return nil
+	}
+
+	log.WithField("hosts", c.hosts()).Info("Enabling developer preview mode")
+
+	// Using POST request instead of the related CLI command since it prompts for user input confirmation
+	_, err := c.nodes[0].client.ExecuteCommand(value.NewCommand(`curl -X POST -u Administrator:asdasd \
+		localhost:8091/settings/developerPreview -d "enabled=true"`))
 
 	return err
 }
