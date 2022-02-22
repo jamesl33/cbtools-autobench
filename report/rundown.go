@@ -26,6 +26,7 @@ import (
 // rundownResult encapsulates the information for a single benchmark iteration.
 type rundownResult struct {
 	Duration           string `json:"duration,omitempty"`
+	AIN                string `json:"ain,omitempty"`
 	ADS                string `json:"ads,omitempty"`
 	GDS                string `json:"gds,omitempty"`
 	AvgTransferRateADS string `json:"avg_transfer_rate_ads,omitempty"`
@@ -41,6 +42,7 @@ func NewRundown(options Options) Rundown {
 	for _, result := range options.Results {
 		results = append(results, &rundownResult{
 			Duration: format.Duration(result.Duration),
+			AIN:      fmt.Sprint(result.AIN),
 			ADS:      format.Bytes(result.ADS),
 			GDS: format.Bytes(uint64(options.Blueprint.Cluster.Bucket.Data.Items *
 				options.Blueprint.Cluster.Bucket.Data.Size)),
@@ -60,12 +62,14 @@ func (r Rundown) String() string {
 	)
 
 	fmt.Fprintln(buffer, "| Rundown\n| -------")
-	fmt.Fprintf(writer, "| Iteration\t Duration\t Size (ADS)\t Size (GDS)\t Transfer Rate (ADS)\t Transfer Rate (GDS)\t\n")
+	fmt.Fprintf(writer, "| Iteration\t Duration\t Items (AIN)\t Size (ADS)\t Size (GDS)\t Transfer Rate (ADS)\t "+
+		"Transfer Rate (GDS)\t\n")
 
 	for index, result := range r {
-		fmt.Fprintf(writer, "| %d\t %s\t %s\t %s\t %s/s\t %s/s\t\n",
+		fmt.Fprintf(writer, "| %d\t %s\t %s\t %s\t %s\t %s/s\t %s/s\t\n",
 			index+1,
 			result.Duration,
+			result.AIN,
 			result.ADS,
 			result.GDS,
 			result.AvgTransferRateADS,

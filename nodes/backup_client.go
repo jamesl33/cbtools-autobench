@@ -35,6 +35,12 @@ type BackupClient struct {
 	node      *Node
 }
 
+// BackupInfo represents useful information about a finished backup.
+type BackupInfo struct {
+	BackupSize uint64
+	ItemsNum   uint64
+}
+
 // NewBackupClient will connect to a backup client using the provided config.
 func NewBackupClient(config *value.SSHConfig, blueprint *value.BackupClientBlueprint) (*BackupClient, error) {
 	node, err := NewNode(config, &value.NodeBlueprint{Host: blueprint.Host})
@@ -157,7 +163,7 @@ func (b *BackupClient) BenchmarkRestore(ctx context.Context, config *value.Bench
 		return nil, errors.Wrap(err, "failed to create repository")
 	}
 
-	size, err := b.createBackup(config, cluster, true)
+	backupInfo, err := b.createBackup(config, cluster, true)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create backup")
 	}
@@ -174,7 +180,7 @@ func (b *BackupClient) BenchmarkRestore(ctx context.Context, config *value.Bench
 			}
 		}
 
-		result, err := b.benchmarkRestore(config, cluster, size)
+		result, err := b.benchmarkRestore(config, cluster, backupInfo.BackupSize)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to run benchmark")
 		}
@@ -210,10 +216,13 @@ func (b *BackupClient) benchmarkBackup(config *value.BenchmarkConfig,
 		return nil, errors.Wrap(err, "failed to run client pre-benchmark tasks")
 	}
 
-	result.ADS, err = b.createBackup(config, cluster, false)
+	backupInfo, err := b.createBackup(config, cluster, false)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create backup")
 	}
+
+	result.ADS = backupInfo.BackupSize
+	result.AIN = backupInfo.ItemsNum
 
 	err = b.purgeBackups(config)
 	if err != nil {
@@ -273,7 +282,7 @@ func (b *BackupClient) runPreBenchmarkTasks() error {
 // createBackup creates a backup of the provided cluster, note that the 'ignoreBlackhole' argument is required to allow
 // benchmarking restore to blackhole i.e. we must create a backup to restore.
 func (b *BackupClient) createBackup(config *value.BenchmarkConfig, cluster *Cluster,
-	ignoreBlackhole bool) (uint64, error) {
+	ignoreBlackhole bool) (*BackupInfo, error) {
 	fields := log.Fields{
 		"blackhole": config.CBMConfig.Blackhole,
 		"hosts":     cluster.hosts(),
@@ -283,33 +292,51 @@ func (b *BackupClient) createBackup(config *value.BenchmarkConfig, cluster *Clus
 
 	_, err := b.node.client.ExecuteCommand(config.CBMConfig.CommandBackup(cluster.ConnectionString(), ignoreBlackhole))
 	if err != nil {
-		return 0, errors.Wrap(err, "failed to run backup")
+		return nil, errors.Wrap(err, "failed to run backup")
 	}
 
 	// All the data should be synced to disk by cbbackupmgr, however, for good measure we'll sync now
 	err = b.node.client.Sync()
 	if err != nil {
-		return 0, errors.Wrap(err, "failed to sync data to disk")
+		return nil, errors.Wrap(err, "failed to sync data to disk")
 	}
 
 	output, err := b.node.client.ExecuteCommand(config.CBMConfig.CommandInfo())
 	if err != nil {
-		return 0, errors.Wrap(err, "failed to run info")
+		return nil, errors.Wrap(err, "failed to run info")
 	}
 
-	// We only care about the size of the created backup so use an overlay to extract that information
+	type overlayBucket struct {
+		Items uint64 `json:"items"`
+	}
+
+	type overlayBackup struct {
+		Size    uint64          `json:"size"`
+		Buckets []overlayBucket `json:"buckets"`
+	}
+
 	type overlay struct {
-		Size uint64 `json:"size"`
+		Backups []overlayBackup `json:"backups"`
 	}
 
 	var decoded *overlay
 
 	err = json.Unmarshal(output, &decoded)
 	if err != nil {
-		return 0, errors.Wrap(err, "failed to decode info output")
+		return nil, errors.Wrap(err, "failed to decode info output")
 	}
 
-	return decoded.Size, nil
+	backupInfo := &BackupInfo{
+		// On each iteration we only do one backup so we only care about the size of the first and only backup in the
+		// list
+		BackupSize: decoded.Backups[0].Size,
+		// We are only backing up one bucket so we can get the number of items from the first and only bucket
+		// NOTE: This is subject to change, the number of items will need to be collected across all buckets if we add
+		// support for testing backups/restores with multiple buckets
+		ItemsNum: decoded.Backups[0].Buckets[0].Items,
+	}
+
+	return backupInfo, nil
 }
 
 // restoreBackup will run a restore of the backups in the repository, realistically there should only be a single

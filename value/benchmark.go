@@ -35,6 +35,11 @@ type BenchmarkResult struct {
 	// Duration is the how long the benchmark took to complete (this does not include setup/cleanup).
 	Duration time.Duration
 
+	// AIN is the actual number of data items that was backed up. This will be used to determine if a workload
+	// generation tool (e.g. cbc-pillowfight) has managed to generate enough mutations during each granularity period
+	// (relevant to Point-In-Time backup testing).
+	AIN uint64
+
 	// ADS is the actual size of the data that was backed up. This will be used to calculate how much data is
 	// transferred for backup/restore benchmarks.
 	ADS uint64
