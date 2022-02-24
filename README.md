@@ -321,7 +321,13 @@ blueprint:
       # Describes the dataset which will be loaded after provisioning (or via '--load-only')
       data:
         # The number of items to load
+        # In the context of a PiTR backup, this is the sum of all PiTR snapshots that are included in this backup
         items: 0
+        # The number of active items (items in a PiTR snapshot)
+        # It is the number of documents that are in a bucket and are mutated at least once per each granularity period
+        # so that the total number of mutations (items) in a PiTR backup adds up to the given item number (specified by
+        # 'items' parameter).
+        active_items: 0
         # The size of each item being loaded (will be uniform)
         size: 0
         # Whether or not the data should be compressible (default is incompressible data)

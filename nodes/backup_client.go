@@ -333,6 +333,8 @@ func (b *BackupClient) createBackup(config *value.BenchmarkConfig, cluster *Clus
 		// We are only backing up one bucket so we can get the number of items from the first and only bucket
 		// NOTE: This is subject to change, the number of items will need to be collected across all buckets if we add
 		// support for testing backups/restores with multiple buckets
+		// TODO: Change this to use the total number of items instead of the number of items in the last snapshot
+		// (useful for PiTR backups and introduced in MB-50821)
 		ItemsNum: decoded.Backups[0].Buckets[0].Items,
 	}
 
