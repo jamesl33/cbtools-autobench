@@ -27,9 +27,9 @@ type BucketBlueprint struct {
 	Type              string         `json:"type,omitempty" yaml:"type,omitempty"`
 	EvictionPolicy    string         `json:"eviction_policy,omitempty" yaml:"eviction_policy,omitempty"`
 	Compact           bool           `json:"compact,omitempty" yaml:"compact,omitempty"`
-	PiTREnabled       bool           `json:"pitr_enabled,omitempty" yaml:"pitr_enabled,omitempty"`
-	PiTRGranularity   uint64         `json:"pitr_granularity,omitempty" yaml:"pitr_granularity,omitempty"`
-	PiTRMaxHistoryAge uint64         `json:"pitr_max_history_age,omitempty" yaml:"pitr_max_history_age,omitempty"`
+	PitrEnabled       bool           `json:"pitr_enabled,omitempty" yaml:"pitr_enabled,omitempty"`
+	PitrGranularity   uint64         `json:"pitr_granularity,omitempty" yaml:"pitr_granularity,omitempty"`
+	PitrMaxHistoryAge uint64         `json:"pitr_max_history_age,omitempty" yaml:"pitr_max_history_age,omitempty"`
 	Data              *DataBlueprint `json:"data,omitempty" yaml:"data,omitempty"`
 }
 
@@ -55,31 +55,29 @@ func (b *BucketBlueprint) String() string {
 		evictionPolicy = b.EvictionPolicy
 	}
 
-	piTRGranularity := "N/A"
+	pitrGranularity := "N/A"
 
-	if b.PiTREnabled {
-		if b.PiTRGranularity != 0 {
-			piTRGranularity = strconv.FormatUint(b.PiTRGranularity, 10)
-		} else {
-			piTRGranularity = "default"
+	if b.PitrEnabled {
+		pitrGranularity = "default"
+		if b.PitrGranularity != 0 {
+			pitrGranularity = strconv.FormatUint(b.PitrGranularity, 10)
 		}
 	}
 
-	piTRMaxHistoryAge := "N/A"
+	pitrMaxHistoryAge := "N/A"
 
-	if b.PiTREnabled {
-		if b.PiTRMaxHistoryAge != 0 {
-			piTRMaxHistoryAge = strconv.FormatUint(b.PiTRMaxHistoryAge, 10)
-		} else {
-			piTRMaxHistoryAge = "default"
+	if b.PitrEnabled {
+		pitrMaxHistoryAge = "default"
+		if b.PitrMaxHistoryAge != 0 {
+			pitrMaxHistoryAge = strconv.FormatUint(b.PitrMaxHistoryAge, 10)
 		}
 	}
 
 	fmt.Fprintln(buffer, "| Bucket\n| ------")
 	fmt.Fprintf(writer, "| vBuckets\t Type\t Eviction Policy\t PiTR Enabled\t PiTR Granularity\t PiTR Max History "+
 		"Age\t Compact\t\n")
-	fmt.Fprintf(writer, "| %s\t %s\t %s\t %t\t %s\t %s\t %t\t\n", vbuckets, bucketType, evictionPolicy, b.PiTREnabled,
-		piTRGranularity, piTRMaxHistoryAge, b.Compact)
+	fmt.Fprintf(writer, "| %s\t %s\t %s\t %t\t %s\t %s\t %t\t\n", vbuckets, bucketType, evictionPolicy, b.PitrEnabled,
+		pitrGranularity, pitrMaxHistoryAge, b.Compact)
 
 	_ = writer.Flush()
 

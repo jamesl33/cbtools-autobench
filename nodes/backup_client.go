@@ -35,12 +35,6 @@ type BackupClient struct {
 	node      *Node
 }
 
-// BackupInfo represents useful information about a finished backup.
-type BackupInfo struct {
-	BackupSize uint64
-	ItemsNum   uint64
-}
-
 // NewBackupClient will connect to a backup client using the provided config.
 func NewBackupClient(config *value.SSHConfig, blueprint *value.BackupClientBlueprint) (*BackupClient, error) {
 	node, err := NewNode(config, &value.NodeBlueprint{Host: blueprint.Host})
@@ -282,7 +276,7 @@ func (b *BackupClient) runPreBenchmarkTasks() error {
 // createBackup creates a backup of the provided cluster, note that the 'ignoreBlackhole' argument is required to allow
 // benchmarking restore to blackhole i.e. we must create a backup to restore.
 func (b *BackupClient) createBackup(config *value.BenchmarkConfig, cluster *Cluster,
-	ignoreBlackhole bool) (*BackupInfo, error) {
+	ignoreBlackhole bool) (*value.BackupInfo, error) {
 	fields := log.Fields{
 		"blackhole": config.CBMConfig.Blackhole,
 		"hosts":     cluster.hosts(),
@@ -326,7 +320,7 @@ func (b *BackupClient) createBackup(config *value.BenchmarkConfig, cluster *Clus
 		return nil, errors.Wrap(err, "failed to decode info output")
 	}
 
-	backupInfo := &BackupInfo{
+	backupInfo := &value.BackupInfo{
 		// On each iteration we only do one backup so we only care about the size of the first and only backup in the
 		// list
 		BackupSize: decoded.Backups[0].Size,

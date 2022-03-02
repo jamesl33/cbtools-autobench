@@ -321,7 +321,8 @@ blueprint:
       # Describes the dataset which will be loaded after provisioning (or via '--load-only')
       data:
         # The number of items to load
-        # In the context of a PiTR backup, this is the sum of all PiTR snapshots that are included in this backup
+        # In the context of a PiTR backup, this is the sum of all items in all PiTR snapshots that are included in this
+        # backup
         items: 0
         # The number of active items (items in a PiTR snapshot)
         # It is the number of documents that are in a bucket and are mutated at least once per each granularity period
@@ -384,8 +385,8 @@ benchmark:
     encryption_algo: ""
     # The value passed to '--threads' (defaults to '--auto-select-threads')
     threads: 0
-    # The value passed to '--point-in-time'
-    point_in_time: false
+    # Pass the '--point-in-time' flag
+    pitr: false
     # Pass the '--sink blackhole' flag
     blackhole: false
 ```
