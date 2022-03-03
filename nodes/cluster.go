@@ -420,9 +420,9 @@ func (c *Cluster) createBucket() error {
 		"name":                 "default",
 		"type":                 c.blueprint.Bucket.Type,
 		"eviction_policy":      c.blueprint.Bucket.EvictionPolicy,
-		"pitr_enabled":         c.blueprint.Bucket.PitrEnabled,
-		"pitr_granularity":     c.blueprint.Bucket.PitrGranularity,
-		"pitr_max_history_age": c.blueprint.Bucket.PitrMaxHistoryAge,
+		"pitr_enabled":         c.blueprint.Bucket.PiTREnabled,
+		"pitr_granularity":     c.blueprint.Bucket.PiTRGranularity,
+		"pitr_max_history_age": c.blueprint.Bucket.PiTRMaxHistoryAge,
 	}
 
 	log.WithFields(fields).Info("Creating bucket")
@@ -436,7 +436,7 @@ func (c *Cluster) createBucket() error {
 		c.blueprint.Bucket.EvictionPolicy,
 	)
 
-	command = c.addPitrArgs(command)
+	command = c.addPiTRArgs(command)
 
 	_, err := c.nodes[0].client.ExecuteCommand(value.NewCommand(command))
 
@@ -613,7 +613,7 @@ func (c *Cluster) loadDataFromNodeUsingPillowfight(node *Node, items int) error 
 	// one mutation per document for every granularity period that is equal or greater than 1 second.
 	//
 	// Potential improvement/workaround is discussed in MB-51242.
-	cyclesNum := granularityPeriodsNum * int(c.blueprint.Bucket.PitrGranularity)
+	cyclesNum := granularityPeriodsNum * int(c.blueprint.Bucket.PiTRGranularity)
 
 	fields := log.Fields{
 		"host":         node.blueprint.Host,
@@ -688,18 +688,18 @@ func (c *Cluster) rebalance() error {
 	return err
 }
 
-// addPitrArgs will conditionally add the PiTR flags to the given command.
-func (c *Cluster) addPitrArgs(command string) string {
-	if c.blueprint.Bucket.PitrEnabled {
+// addPiTRArgs will conditionally add the PiTR flags to the given command.
+func (c *Cluster) addPiTRArgs(command string) string {
+	if c.blueprint.Bucket.PiTREnabled {
 		command += " --enable-point-in-time 1"
 	}
 
-	if c.blueprint.Bucket.PitrGranularity != 0 {
-		command += fmt.Sprintf(" --point-in-time-granularity %d", c.blueprint.Bucket.PitrGranularity)
+	if c.blueprint.Bucket.PiTRGranularity != 0 {
+		command += fmt.Sprintf(" --point-in-time-granularity %d", c.blueprint.Bucket.PiTRGranularity)
 	}
 
-	if c.blueprint.Bucket.PitrMaxHistoryAge != 0 {
-		command += fmt.Sprintf(" --point-in-time-max-history-age %d", c.blueprint.Bucket.PitrMaxHistoryAge)
+	if c.blueprint.Bucket.PiTRMaxHistoryAge != 0 {
+		command += fmt.Sprintf(" --point-in-time-max-history-age %d", c.blueprint.Bucket.PiTRMaxHistoryAge)
 	}
 
 	return command

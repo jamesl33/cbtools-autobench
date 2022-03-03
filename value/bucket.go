@@ -27,9 +27,9 @@ type BucketBlueprint struct {
 	Type              string         `json:"type,omitempty" yaml:"type,omitempty"`
 	EvictionPolicy    string         `json:"eviction_policy,omitempty" yaml:"eviction_policy,omitempty"`
 	Compact           bool           `json:"compact,omitempty" yaml:"compact,omitempty"`
-	PitrEnabled       bool           `json:"pitr_enabled,omitempty" yaml:"pitr_enabled,omitempty"`
-	PitrGranularity   uint64         `json:"pitr_granularity,omitempty" yaml:"pitr_granularity,omitempty"`
-	PitrMaxHistoryAge uint64         `json:"pitr_max_history_age,omitempty" yaml:"pitr_max_history_age,omitempty"`
+	PiTREnabled       bool           `json:"pitr_enabled,omitempty" yaml:"pitr_enabled,omitempty"`
+	PiTRGranularity   uint64         `json:"pitr_granularity,omitempty" yaml:"pitr_granularity,omitempty"`
+	PiTRMaxHistoryAge uint64         `json:"pitr_max_history_age,omitempty" yaml:"pitr_max_history_age,omitempty"`
 	Data              *DataBlueprint `json:"data,omitempty" yaml:"data,omitempty"`
 }
 
@@ -55,28 +55,12 @@ func (b *BucketBlueprint) String() string {
 		evictionPolicy = b.EvictionPolicy
 	}
 
-	pitrGranularity := "N/A"
-
-	if b.PitrEnabled {
-		pitrGranularity = "default"
-		if b.PitrGranularity != 0 {
-			pitrGranularity = strconv.FormatUint(b.PitrGranularity, 10)
-		}
-	}
-
-	pitrMaxHistoryAge := "N/A"
-
-	if b.PitrEnabled {
-		pitrMaxHistoryAge = "default"
-		if b.PitrMaxHistoryAge != 0 {
-			pitrMaxHistoryAge = strconv.FormatUint(b.PitrMaxHistoryAge, 10)
-		}
-	}
+	pitrGranularity, pitrMaxHistoryAge := b.stringifyPiTRSettings()
 
 	fmt.Fprintln(buffer, "| Bucket\n| ------")
 	fmt.Fprintf(writer, "| vBuckets\t Type\t Eviction Policy\t PiTR Enabled\t PiTR Granularity\t PiTR Max History "+
 		"Age\t Compact\t\n")
-	fmt.Fprintf(writer, "| %s\t %s\t %s\t %t\t %s\t %s\t %t\t\n", vbuckets, bucketType, evictionPolicy, b.PitrEnabled,
+	fmt.Fprintf(writer, "| %s\t %s\t %s\t %t\t %s\t %s\t %t\t\n", vbuckets, bucketType, evictionPolicy, b.PiTREnabled,
 		pitrGranularity, pitrMaxHistoryAge, b.Compact)
 
 	_ = writer.Flush()
@@ -84,4 +68,23 @@ func (b *BucketBlueprint) String() string {
 	fmt.Fprintf(buffer, "\n%s", b.Data)
 
 	return buffer.String()
+}
+
+// stringifyPiTRSettings returns the pitr granularity/max age as strings to display in the report.
+func (b *BucketBlueprint) stringifyPiTRSettings() (string, string) {
+	if !b.PiTREnabled {
+		return "N/A", "N/A"
+	}
+
+	pitrGranularity := "default"
+	if b.PiTRGranularity != 0 {
+		pitrGranularity = strconv.FormatUint(b.PiTRGranularity, 10)
+	}
+
+	pitrMaxHistoryAge := "default"
+	if b.PiTRMaxHistoryAge != 0 {
+		pitrMaxHistoryAge = strconv.FormatUint(b.PiTRMaxHistoryAge, 10)
+	}
+
+	return pitrGranularity, pitrMaxHistoryAge
 }

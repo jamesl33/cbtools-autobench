@@ -76,8 +76,8 @@ type CBMConfig struct {
 	// to automatically determine the number of threads.
 	Threads int `json:"threads,omitempty" yaml:"threads,omitempty"`
 
-	// Pitr indicates whether the backup repository should be configured for Point-In-Time backups.
-	Pitr bool `json:"pitr,omitempty" yaml:"pitr,omitempty"`
+	// PiTR indicates whether the backup repository should be configured for Point-In-Time backups.
+	PiTR bool `json:"pitr,omitempty" yaml:"pitr,omitempty"`
 
 	// Blackhole indicates whether the benchmarks should actually backup any data or just pull it from the cluster and
 	// then discard it immediately.
@@ -115,7 +115,7 @@ func (c *CBMConfig) String() string {
 		staging,
 		storage,
 		threads,
-		c.Pitr,
+		c.PiTR,
 		c.Blackhole)
 
 	_ = writer.Flush()
@@ -263,7 +263,7 @@ func (c *CBMConfig) addBlackhole(command string) string {
 
 // addPointInTimeArg will conditionally add the --point-in-time flag to the given command.
 func (c *CBMConfig) addPointInTimeFlag(command string) string {
-	if !c.Pitr {
+	if !c.PiTR {
 		return command
 	}
 
