@@ -37,18 +37,24 @@ type ClusterBlueprint struct {
 
 	// Bucket is the blueprint for the bucket that will be created once the cluster is provisioned.
 	Bucket *BucketBlueprint `yaml:"bucket,omitempty"`
+
+	// DeveloperPreview is a boolean which indicates whether or not developer preview should be enabled on the
+	// cluster.
+	DeveloperPreview bool `yaml:"developer_preview,omitempty"`
 }
 
 // MarshalJSON returns a JSON representation of the cluster blueprint which will be displayed in the report.
 func (c *ClusterBlueprint) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
-		Version string           `json:"version,omitempty"`
-		Nodes   []*NodeBlueprint `json:"nodes,omitempty"`
-		Bucket  *BucketBlueprint `json:"bucket,omitempty"`
+		Version          string           `json:"version,omitempty"`
+		Nodes            []*NodeBlueprint `json:"nodes,omitempty"`
+		Bucket           *BucketBlueprint `json:"bucket,omitempty"`
+		DeveloperPreview bool             `json:"developer_preview,omitempty"`
 	}{
-		Version: extractBuild(c.PackagePath),
-		Nodes:   c.Nodes,
-		Bucket:  c.Bucket,
+		Version:          extractBuild(c.PackagePath),
+		Nodes:            c.Nodes,
+		Bucket:           c.Bucket,
+		DeveloperPreview: c.DeveloperPreview,
 	})
 }
 
@@ -60,10 +66,11 @@ func (c *ClusterBlueprint) String() string {
 	)
 
 	fmt.Fprintln(buffer, "| Cluster\n| -------")
-	fmt.Fprintf(writer, "| Node\t Version\t Host\t\n")
+	fmt.Fprintf(writer, "| Node\t Version\t Host\t Developer Preview\t\n")
 
 	for index, node := range c.Nodes {
-		fmt.Fprintf(writer, "| %d\t %s\t %s\t\n", index+1, extractBuild(c.PackagePath), node.Host)
+		fmt.Fprintf(writer, "| %d\t %s\t %s\t %t\t\n", index+1, extractBuild(c.PackagePath), node.Host,
+			c.DeveloperPreview)
 	}
 
 	_ = writer.Flush()

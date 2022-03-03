@@ -312,10 +312,23 @@ blueprint:
       eviction_policy: ""
       # Whether to compact the bucket after the data load phase completes
       compact: false
+      # Whether the bucket should have Point-In-Time capability
+      pitr_enabled: false
+      # The granularity of Point-In-Time backups
+      pitr_granularity: 0
+      # The maximum history age of Point-In-Time backups
+      pitr_max_history_age: 0
       # Describes the dataset which will be loaded after provisioning (or via '--load-only')
       data:
         # The number of items to load
+        # In the context of a PiTR backup, this is the sum of all items in all PiTR snapshots that are included in this
+        # backup
         items: 0
+        # The number of active items (items in a PiTR snapshot)
+        # It is the number of documents that are in a bucket and are mutated at least once per each granularity period
+        # so that the total number of mutations (items) in a PiTR backup adds up to the given item number (specified by
+        # 'items' parameter).
+        active_items: 0
         # The size of each item being loaded (will be uniform)
         size: 0
         # Whether or not the data should be compressible (default is incompressible data)
@@ -372,6 +385,8 @@ benchmark:
     encryption_algo: ""
     # The value passed to '--threads' (defaults to '--auto-select-threads')
     threads: 0
+    # Pass the '--point-in-time' flag
+    pitr: false
     # Pass the '--sink blackhole' flag
     blackhole: false
 ```

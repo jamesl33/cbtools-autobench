@@ -98,6 +98,11 @@ func (c *Cluster) Provision() error {
 		return errors.Wrap(err, "failed to initialize Couchbase")
 	}
 
+	err = c.enableDeveloperPreviewMode()
+	if err != nil {
+		return errors.Wrap(err, "failed to enable developer preview mode")
+	}
+
 	// Sometimes it's useful to limit the number of vBuckets in the remote cluster when performing testing which is
 	// scaled to simulate a dataset of a certain size.
 	err = c.limitVBuckets()
@@ -116,8 +121,8 @@ func (c *Cluster) Provision() error {
 	return nil
 }
 
-// LoadData will load the benchmark dataset using 'cbbackupmgr'. The load phase is sped up by modifying the eviction
-// pager settings to speed up eviction.
+// LoadData will load the benchmark dataset using the data loader specified in the config. The load phase is sped up by
+// modifying the eviction pager settings to speed up eviction.
 func (c *Cluster) LoadData(compact bool) error {
 	log.WithField("compact", compact).Info("Loading test data")
 
@@ -393,24 +398,47 @@ func (c *Cluster) limitVBuckets() error {
 	return err
 }
 
+// enableDeveloperPreviewMode enables the developer preview mode for the cluster.
+func (c *Cluster) enableDeveloperPreviewMode() error {
+	if !c.blueprint.DeveloperPreview {
+		return nil
+	}
+
+	log.WithField("hosts", c.hosts()).Info("Enabling developer preview mode")
+
+	// Using POST request instead of the related CLI command since it prompts for user input confirmation
+	_, err := c.nodes[0].client.ExecuteCommand(value.NewCommand(`curl -X POST -u Administrator:asdasd \
+		localhost:8091/settings/developerPreview -d "enabled=true"`))
+
+	return err
+}
+
 // createBucket creates the benchmarking on the remote cluster which by default uses a quota of 80% of the total memory
 // on the cluster nodes.
 func (c *Cluster) createBucket() error {
 	fields := log.Fields{
-		"name":            "default",
-		"type":            c.blueprint.Bucket.Type,
-		"eviction_policy": c.blueprint.Bucket.EvictionPolicy,
+		"name":                 "default",
+		"type":                 c.blueprint.Bucket.Type,
+		"eviction_policy":      c.blueprint.Bucket.EvictionPolicy,
+		"pitr_enabled":         c.blueprint.Bucket.PitrEnabled,
+		"pitr_granularity":     c.blueprint.Bucket.PitrGranularity,
+		"pitr_max_history_age": c.blueprint.Bucket.PitrMaxHistoryAge,
 	}
 
 	log.WithFields(fields).Info("Creating bucket")
 
-	_, err := c.nodes[0].client.ExecuteCommand(
-		value.NewCommand(`%s couchbase-cli bucket-create --bucket default --bucket-type %s -c localhost:8091 \
+	command := fmt.Sprintf(
+		`%s couchbase-cli bucket-create --bucket default --bucket-type %s -c localhost:8091 \
 			-u Administrator -p asdasd --bucket-ramsize $QUOTA --bucket-eviction-policy %s \
 			--bucket-replica 0 --enable-flush 1 --wait`,
-			memInfo,
-			c.blueprint.Bucket.Type,
-			c.blueprint.Bucket.EvictionPolicy))
+		memInfo,
+		c.blueprint.Bucket.Type,
+		c.blueprint.Bucket.EvictionPolicy,
+	)
+
+	command = c.addPitrArgs(command)
+
+	_, err := c.nodes[0].client.ExecuteCommand(value.NewCommand(command))
 
 	return err
 }
@@ -515,7 +543,8 @@ func (c *Cluster) modifyEvictionPercentage(node *Node, percentage int) error {
 	return err
 }
 
-// loadData runs 'cbbackupmgr' on each node in the cluster to generate the benchmarking dataset.
+// loadData runs the data loader specified in the config on each node in the cluster to generate the benchmarking
+// dataset.
 func (c *Cluster) loadData() error {
 	items := make(chan int, len(c.nodes))
 
@@ -525,12 +554,23 @@ func (c *Cluster) loadData() error {
 
 	items <- (c.blueprint.Bucket.Data.Items / len(c.nodes)) + (c.blueprint.Bucket.Data.Items % len(c.nodes))
 
-	return c.forEachNode(func(node *Node) error { return c.loadDataFromNode(node, <-items) })
+	var nodeDataLoadingFunc func(node *Node) error
+
+	switch c.blueprint.Bucket.Data.DataLoader {
+	case value.CBM:
+		nodeDataLoadingFunc = func(node *Node) error { return c.loadDataFromNodeUsingBackupMgr(node, <-items) }
+	case value.Pillowfight:
+		nodeDataLoadingFunc = func(node *Node) error { return c.loadDataFromNodeUsingPillowfight(node, <-items) }
+	default:
+		return fmt.Errorf("unknown/unsupported data loader '%s'", c.blueprint.Bucket.Data.DataLoader)
+	}
+
+	return c.forEachNode(nodeDataLoadingFunc)
 }
 
-// loadDataFromNode runs 'cbbackupmgr' on the provided node to load the given number of items into the benchmarking
-// bucket.
-func (c *Cluster) loadDataFromNode(node *Node, items int) error {
+// loadDataFromNodeUsingBackupMgr runs 'cbbackupmgr' on the provided node to load the given number of items into the
+// benchmarking bucket.
+func (c *Cluster) loadDataFromNodeUsingBackupMgr(node *Node, items int) error {
 	fields := log.Fields{
 		"host":    node.blueprint.Host,
 		"bucket":  "default",
@@ -556,6 +596,53 @@ func (c *Cluster) loadDataFromNode(node *Node, items int) error {
 
 	if !c.blueprint.Bucket.Data.Compressible {
 		command += " --low-compression"
+	}
+
+	_, err := node.client.ExecuteCommand(value.NewCommand(command))
+
+	return err
+}
+
+// loadDataFromNodeBackupUsingPillowfight runs 'cbc-pillowfight' on a given node to load and mutate the given number
+// of items for at least one time for each granularity period (used with Point-In-Time backup testing).
+func (c *Cluster) loadDataFromNodeUsingPillowfight(node *Node, items int) error {
+	granularityPeriodsNum := items / c.blueprint.Bucket.Data.ActiveItems
+	// Pillowfight can be configured to run a certain number of operations per second but in our case we want it to
+	// run a certain number of operations per granularity period (which is at least a second). We work around this
+	// limitations by making Pillowfight do one mutation per document per second, which ensures that we have at least
+	// one mutation per document for every granularity period that is equal or greater than 1 second.
+	//
+	// Potential improvement/workaround is discussed in MB-51242.
+	cyclesNum := granularityPeriodsNum * int(c.blueprint.Bucket.PitrGranularity)
+
+	fields := log.Fields{
+		"host":         node.blueprint.Host,
+		"bucket":       "default",
+		"items":        items,
+		"active_items": c.blueprint.Bucket.Data.ActiveItems,
+		"cycles":       cyclesNum,
+		"size":         c.blueprint.Bucket.Data.Size,
+		"threads":      c.blueprint.Bucket.Data.LoadThreads,
+	}
+
+	log.WithFields(fields).Info("Running 'pillowfight' to load data into bucket")
+
+	command := fmt.Sprintf(`cbc-pillowfight -U localhost -u Administrator -P asdasd -B %d -I %d --num-cycles %d \
+		--rate-limit %d -m %d -M %d -r 100 -R --sequential`,
+		c.blueprint.Bucket.Data.ActiveItems,
+		c.blueprint.Bucket.Data.ActiveItems,
+		cyclesNum,
+		c.blueprint.Bucket.Data.ActiveItems,
+		c.blueprint.Bucket.Data.Size,
+		c.blueprint.Bucket.Data.Size,
+	)
+
+	if c.blueprint.Bucket.Data.LoadThreads != 0 {
+		command += fmt.Sprintf(" --num-threads %d", c.blueprint.Bucket.Data.LoadThreads)
+	}
+
+	if !c.blueprint.Bucket.Data.Compressible {
+		command += " --compress"
 	}
 
 	_, err := node.client.ExecuteCommand(value.NewCommand(command))
@@ -599,6 +686,23 @@ func (c *Cluster) rebalance() error {
 		value.NewCommand(`couchbase-cli rebalance -c localhost:8091 -u Administrator -p asdasd`))
 
 	return err
+}
+
+// addPitrArgs will conditionally add the PiTR flags to the given command.
+func (c *Cluster) addPitrArgs(command string) string {
+	if c.blueprint.Bucket.PitrEnabled {
+		command += " --enable-point-in-time 1"
+	}
+
+	if c.blueprint.Bucket.PitrGranularity != 0 {
+		command += fmt.Sprintf(" --point-in-time-granularity %d", c.blueprint.Bucket.PitrGranularity)
+	}
+
+	if c.blueprint.Bucket.PitrMaxHistoryAge != 0 {
+		command += fmt.Sprintf(" --point-in-time-max-history-age %d", c.blueprint.Bucket.PitrMaxHistoryAge)
+	}
+
+	return command
 }
 
 // ConnectionString returns a connection string which can be used to connect to the cluster.

@@ -23,11 +23,14 @@ import (
 
 // BucketBlueprint represents the configration for a bucket that will be created by the 'provision' sub-command.
 type BucketBlueprint struct {
-	VBuckets       uint16         `json:"vbuckets,omitempty" yaml:"vbuckets,omitempty"`
-	Type           string         `json:"type,omitempty" yaml:"type,omitempty"`
-	EvictionPolicy string         `json:"eviction_policy,omitempty" yaml:"eviction_policy,omitempty"`
-	Compact        bool           `json:"compact,omitempty" yaml:"compact,omitempty"`
-	Data           *DataBlueprint `json:"data,omitempty" yaml:"data,omitempty"`
+	VBuckets          uint16         `json:"vbuckets,omitempty" yaml:"vbuckets,omitempty"`
+	Type              string         `json:"type,omitempty" yaml:"type,omitempty"`
+	EvictionPolicy    string         `json:"eviction_policy,omitempty" yaml:"eviction_policy,omitempty"`
+	Compact           bool           `json:"compact,omitempty" yaml:"compact,omitempty"`
+	PitrEnabled       bool           `json:"pitr_enabled,omitempty" yaml:"pitr_enabled,omitempty"`
+	PitrGranularity   uint64         `json:"pitr_granularity,omitempty" yaml:"pitr_granularity,omitempty"`
+	PitrMaxHistoryAge uint64         `json:"pitr_max_history_age,omitempty" yaml:"pitr_max_history_age,omitempty"`
+	Data              *DataBlueprint `json:"data,omitempty" yaml:"data,omitempty"`
 }
 
 // String returns a string representation of the blueprint which will be output in the report.
@@ -52,9 +55,29 @@ func (b *BucketBlueprint) String() string {
 		evictionPolicy = b.EvictionPolicy
 	}
 
+	pitrGranularity := "N/A"
+
+	if b.PitrEnabled {
+		pitrGranularity = "default"
+		if b.PitrGranularity != 0 {
+			pitrGranularity = strconv.FormatUint(b.PitrGranularity, 10)
+		}
+	}
+
+	pitrMaxHistoryAge := "N/A"
+
+	if b.PitrEnabled {
+		pitrMaxHistoryAge = "default"
+		if b.PitrMaxHistoryAge != 0 {
+			pitrMaxHistoryAge = strconv.FormatUint(b.PitrMaxHistoryAge, 10)
+		}
+	}
+
 	fmt.Fprintln(buffer, "| Bucket\n| ------")
-	fmt.Fprintf(writer, "| vBuckets\t Type\t Eviction Policy\t Compact\t\n")
-	fmt.Fprintf(writer, "| %s\t %s\t %s\t %t\t\n", vbuckets, bucketType, evictionPolicy, b.Compact)
+	fmt.Fprintf(writer, "| vBuckets\t Type\t Eviction Policy\t PiTR Enabled\t PiTR Granularity\t PiTR Max History "+
+		"Age\t Compact\t\n")
+	fmt.Fprintf(writer, "| %s\t %s\t %s\t %t\t %s\t %s\t %t\t\n", vbuckets, bucketType, evictionPolicy, b.PitrEnabled,
+		pitrGranularity, pitrMaxHistoryAge, b.Compact)
 
 	_ = writer.Flush()
 
