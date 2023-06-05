@@ -15,6 +15,8 @@
 package cmd
 
 import (
+	"context"
+
 	"github.com/jamesl33/cbtools-autobench/nodes"
 
 	"github.com/couchbase/tools-common/hofp"
@@ -91,7 +93,9 @@ func provision(_ *cobra.Command, _ []string) error {
 
 	pool := hofp.NewPool(hofp.Options{Size: 2})
 
-	queue := func(p provisioner) error { return pool.Queue(p.Provision) }
+	queue := func(p provisioner) error {
+		return pool.Queue(func(_ context.Context) error { return p.Provision() })
+	}
 
 	for _, p := range provisioners {
 		if queue(p) != nil {

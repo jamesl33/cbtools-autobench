@@ -67,7 +67,7 @@ func NewCluster(config *value.SSHConfig, blueprint *value.ClusterBlueprint) (*Cl
 	}
 
 	queue := func(idx int, nb *value.NodeBlueprint) error {
-		return pool.Queue(func() error { return connect(idx, nb) })
+		return pool.Queue(func(_ context.Context) error { return connect(idx, nb) })
 	}
 
 	for idx, nb := range blueprint.Nodes {
@@ -513,7 +513,7 @@ func (c *Cluster) forEachNode(fn func(node *Node) error) error {
 		Size: maths.Min(system.NumCPU(), len(c.nodes)),
 	})
 
-	queue := func(node *Node) error { return pool.Queue(func() error { return fn(node) }) }
+	queue := func(node *Node) error { return pool.Queue(func(_ context.Context) error { return fn(node) }) }
 
 	for _, node := range c.nodes {
 		if queue(node) != nil {
