@@ -141,7 +141,8 @@ func benchmark(_ *cobra.Command, args []string) error {
 // collectLogs will collect the logs from the cluster/backup archive, note if an empty path is provided the logs will
 // not be collected.
 func collectLogs(cluster *nodes.Cluster, client *nodes.BackupClient, config *value.BenchmarkConfig,
-	path string) ([]string, string, error) {
+	path string,
+) ([]string, string, error) {
 	// We haven't been provided a path by the user, this indicates that they don't want to collect the logs
 	if path == "" {
 		return nil, "", nil

@@ -107,7 +107,8 @@ func (b *BackupClient) CollectLogs(config *value.BenchmarkConfig, path string) (
 // BenchmarkBackup will run one or more backup benchmarks on the client using the provided benchmark config. If the
 // provided context is cancelled, we will gracefully complete the current backup then return early.
 func (b *BackupClient) BenchmarkBackup(ctx context.Context, config *value.BenchmarkConfig,
-	cluster *Cluster) (value.BenchmarkResults, error) {
+	cluster *Cluster,
+) (value.BenchmarkResults, error) {
 	log.WithField("iterations", config.Iterations).Info("Beginning 'cbbackupmgr' backup benchmark(s)")
 
 	err := b.purgeArchive(config)
@@ -144,7 +145,8 @@ func (b *BackupClient) BenchmarkBackup(ctx context.Context, config *value.Benchm
 // BenchmarkRestore will run one or more restore benchmarks on the client using the providing benchmark config. If the
 // provided context is cancelled, we will gracefully complete the current restore then return early.
 func (b *BackupClient) BenchmarkRestore(ctx context.Context, config *value.BenchmarkConfig,
-	cluster *Cluster) (value.BenchmarkResults, error) {
+	cluster *Cluster,
+) (value.BenchmarkResults, error) {
 	log.WithField("iterations", config.Iterations).Info("Beginning 'cbbackupmgr' restore benchmark(s)")
 
 	err := b.purgeArchive(config)
@@ -192,7 +194,8 @@ func (b *BackupClient) BenchmarkRestore(ctx context.Context, config *value.Bench
 
 // benchmarkBackup will run an individual backup benchmark and fetch any data needed to produce a useful report.
 func (b *BackupClient) benchmarkBackup(config *value.BenchmarkConfig,
-	cluster *Cluster) (*value.BenchmarkResult, error) {
+	cluster *Cluster,
+) (*value.BenchmarkResult, error) {
 	result := &value.BenchmarkResult{}
 
 	start := time.Now()
@@ -228,7 +231,8 @@ func (b *BackupClient) benchmarkBackup(config *value.BenchmarkConfig,
 
 // benchmarkRestore will run an individual restore benchmark and fetch any data needed to produce a useful report.
 func (b *BackupClient) benchmarkRestore(config *value.BenchmarkConfig,
-	cluster *Cluster, ads uint64) (*value.BenchmarkResult, error) {
+	cluster *Cluster, ads uint64,
+) (*value.BenchmarkResult, error) {
 	result := &value.BenchmarkResult{
 		ADS: ads,
 	}
@@ -276,7 +280,8 @@ func (b *BackupClient) runPreBenchmarkTasks() error {
 // createBackup creates a backup of the provided cluster, note that the 'ignoreBlackhole' argument is required to allow
 // benchmarking restore to blackhole i.e. we must create a backup to restore.
 func (b *BackupClient) createBackup(config *value.BenchmarkConfig, cluster *Cluster,
-	ignoreBlackhole bool) (*value.BackupInfo, error) {
+	ignoreBlackhole bool,
+) (*value.BackupInfo, error) {
 	fields := log.Fields{
 		"blackhole": config.CBMConfig.Blackhole,
 		"hosts":     cluster.hosts(),
