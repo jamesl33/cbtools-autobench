@@ -20,7 +20,7 @@ import (
 	"strconv"
 	"text/tabwriter"
 
-	"github.com/couchbase/tools-common/format"
+	"github.com/couchbase/tools-common/strings/format"
 
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"

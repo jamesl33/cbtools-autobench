@@ -21,7 +21,7 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/couchbase/tools-common/format"
+	"github.com/couchbase/tools-common/strings/format"
 )
 
 // Overview is the overview component to the report which highlights interesting averages across the benchmark

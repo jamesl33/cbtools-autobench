@@ -17,7 +17,7 @@ package cmd
 import (
 	"os"
 
-	"github.com/couchbase/tools-common/fsutil"
+	fsutil "github.com/couchbase/tools-common/fs/util"
 	"github.com/jamesl33/cbtools-autobench/nodes"
 	"github.com/jamesl33/cbtools-autobench/report"
 	"github.com/jamesl33/cbtools-autobench/value"

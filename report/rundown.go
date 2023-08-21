@@ -20,7 +20,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/couchbase/tools-common/format"
+	"github.com/couchbase/tools-common/strings/format"
 )
 
 // rundownResult encapsulates the information for a single benchmark iteration.

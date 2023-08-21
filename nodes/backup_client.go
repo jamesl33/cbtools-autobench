@@ -25,7 +25,7 @@ import (
 	"github.com/jamesl33/cbtools-autobench/value"
 
 	"github.com/apex/log"
-	"github.com/couchbase/tools-common/maths"
+	"github.com/couchbase/tools-common/utils/maths"
 	"github.com/pkg/errors"
 )
 
