@@ -16,7 +16,6 @@ package ssh
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"strings"
 
@@ -103,7 +102,7 @@ func determinePlatform(client *ssh.Client) (value.Platform, error) {
 		return determineAmazonLinuxPlatform(strings.TrimSpace(string(release)))
 	}
 
-	return "", errors.New(fmt.Sprintf("unsupported distro '%s'", strings.TrimSpace(string(distro))))
+	return "", errors.Errorf("unsupported distro '%s'", strings.TrimSpace(string(distro)))
 }
 
 // determineUbuntuPlatform returns the specific platform for the given Ubuntu release.
@@ -113,7 +112,7 @@ func determineUbuntuPlatform(release string) (value.Platform, error) {
 		return value.PlatformUbuntu20_04, nil
 	}
 
-	return "", errors.New(fmt.Sprintf("unsupported ubuntu release '%s'", release))
+	return "", errors.Errorf("unsupported ubuntu release '%s'", release)
 }
 
 // determineAmazonLinuxPlatform returns the specific platform for the given Amazon Linux release.
@@ -123,5 +122,5 @@ func determineAmazonLinuxPlatform(release string) (value.Platform, error) {
 		return value.PlatformAmazonLinux2, nil
 	}
 
-	return "", errors.New(fmt.Sprintf("unsupported amazon linux release '%s'", release))
+	return "", errors.Errorf("unsupported amazon linux release '%s'", release)
 }

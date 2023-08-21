@@ -1,13 +1,16 @@
+issues:
+  max-issues-per-linter: 0 # Unlimited
+  max-same-issues: 0 # Unlimited
 linters:
+  fast: false
   enable:
     - asciicheck
     - bodyclose
-    - deadcode
     - dogsled
+    # - godox
     - gofmt
     - gofumpt
     - goimports
-    - golint
     - gosimple
     - ineffassign
     - lll
@@ -16,16 +19,20 @@ linters:
     - nestif
     - nolintlint
     - prealloc
+    - revive
     - rowserrcheck
     - sqlclosecheck
     - staticcheck
-    - structcheck
     - unconvert
     - unparam
-    - varcheck
+    - unused
     - wastedassign
     - whitespace
     - wsl
+run:
+  go: 1.18
 linters-settings:
   lll:
     line-length: 120
+  unparam:
+    check-exported: true
