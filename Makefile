@@ -1,16 +1,19 @@
-build:
-	@go build
+PACKAGE=
+TESTS=
 
 coverage:
-	@go test -coverprofile=coverage.out ./... && go tool cover -html=coverage.out
+	@go test ./$(PACKAGE)/... -run=$(TESTS) -count=1 -covermode=atomic -coverprofile=coverage.out -failfast -shuffle=on && go tool cover -html=coverage.out
+
+generate:
+	@go generate ./$(PACKAGE)/...
 
 lint:
 	@golangci-lint run
 
 test:
-	@go test -count=1 -cover ./...
+	@go test ./$(PACKAGE)/... -run=$(TESTS) -count=1 -cover -failfast -shuffle=on
 
 clean:
 	@rm -f coverage.out
 
-.PHONY: build coverage test lint clean
+.PHONY: coverage generate lint test clean
