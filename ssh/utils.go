@@ -118,7 +118,7 @@ func determineUbuntuPlatform(release string) (value.Platform, error) {
 // determineAmazonLinuxPlatform returns the specific platform for the given Amazon Linux release.
 func determineAmazonLinuxPlatform(release string) (value.Platform, error) {
 	switch release {
-	case "2":
+	case "2", "2023":
 		return value.PlatformAmazonLinux2, nil
 	}
 

@@ -53,7 +53,7 @@ func (p Platform) Dependencies() []string {
 	case PlatformUbuntu20_04:
 		return []string{"awscli", "libtinfo5"}
 	case PlatformAmazonLinux2:
-		return []string{"awscli"}
+		return []string{"awscli", "ncurses-compat-libs"}
 	}
 
 	panic(fmt.Sprintf("unsupported platform '%s'", p))
