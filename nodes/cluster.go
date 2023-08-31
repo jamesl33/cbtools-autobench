@@ -574,7 +574,12 @@ func (c *Cluster) loadDataFromNodeUsingBackupMgr(node *Node, items int) error {
 // loadDataFromNodeBackupUsingPillowfight runs 'cbc-pillowfight' on a given node to load and mutate the given number
 // of items for at least one time for each granularity period (used with Point-In-Time backup testing).
 func (c *Cluster) loadDataFromNodeUsingPillowfight(node *Node, items int) error {
+	if !c.blueprint.Bucket.PiTREnabled {
+		return fmt.Errorf("loading data with 'cbc-pillowfight' is only supported for PiTR")
+	}
+
 	granularityPeriodsNum := items / c.blueprint.Bucket.Data.ActiveItems
+
 	// Pillowfight can be configured to run a certain number of operations per second but in our case we want it to
 	// run a certain number of operations per granularity period (which is at least a second). We work around this
 	// limitations by making Pillowfight do one mutation per document per second, which ensures that we have at least
