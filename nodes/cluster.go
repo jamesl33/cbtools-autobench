@@ -206,7 +206,7 @@ func (c *Cluster) Stats() (*value.Stats, error) {
 		BasicStats *value.Stats `json:"basicStats"`
 	}
 
-	var decoded *overlay
+	var decoded overlay
 
 	err = json.Unmarshal(output, &decoded)
 	if err != nil {
@@ -243,7 +243,7 @@ func (c *Cluster) compactionComplete() (bool, error) {
 		Status string `json:"status"`
 	}
 
-	var decoded []*overlay
+	var decoded []overlay
 
 	err = json.Unmarshal(output, &decoded)
 	if err != nil {

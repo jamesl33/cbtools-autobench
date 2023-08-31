@@ -318,7 +318,7 @@ func (b *BackupClient) createBackup(config *value.BenchmarkConfig, cluster *Clus
 		Backups []overlayBackup `json:"backups"`
 	}
 
-	var decoded *overlay
+	var decoded overlay
 
 	err = json.Unmarshal(output, &decoded)
 	if err != nil {
