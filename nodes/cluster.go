@@ -525,7 +525,7 @@ func (c *Cluster) loadData() error {
 	var nodeDataLoadingFunc func(node *Node) error
 
 	switch c.blueprint.Bucket.Data.DataLoader {
-	case value.CBM:
+	case "", value.CBM:
 		nodeDataLoadingFunc = func(node *Node) error { return c.loadDataFromNodeUsingBackupMgr(node, <-items) }
 	case value.Pillowfight:
 		nodeDataLoadingFunc = func(node *Node) error { return c.loadDataFromNodeUsingPillowfight(node, <-items) }
