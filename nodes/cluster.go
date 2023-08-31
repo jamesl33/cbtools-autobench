@@ -18,10 +18,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"time"
 
@@ -307,12 +305,6 @@ func (c *Cluster) downloadLogs(logPaths []string, output string) error {
 
 // provisionNodes provisions and initializes Couchbase Server on all the node in the cluster.
 func (c *Cluster) provisionNodes() error {
-	// Attempt to download the required package archive, note that if we're using a local archive this will be a noop
-	err := c.downloadCB()
-	if err != nil {
-		return errors.Wrap(err, "failed to download build")
-	}
-
 	return c.forEachNode(func(node *Node) error { return c.provisionNode(node) })
 }
 
@@ -336,30 +328,6 @@ func (c *Cluster) provisionNode(node *Node) error {
 	}
 
 	return nil
-}
-
-// downloadCB downloads the package archive for the given build number using latest builds.
-//
-// NOTE: This requires access to the VPN.
-func (c *Cluster) downloadCB() error {
-	// If this is not a valid build number assume the user has provided a path to a local archive instead and don't
-	// bother downloading anything.
-	if !regexp.MustCompile(`^(\d+\.\d+\.\d+)-(\d+)$`).MatchString(c.blueprint.PackagePath) {
-		return nil
-	}
-
-	url, err := createBuildURL(c.nodes[0].client.Platform, c.blueprint.PackagePath)
-	if err != nil {
-		return errors.Wrap(err, "failed to create build URL")
-	}
-
-	log.WithField("url", url).Info("Downloading Couchbase Server")
-
-	c.blueprint.PackagePath = filepath.Join(os.TempDir(), filepath.Base(url))
-
-	_, err = exec.Command("wget", url, "-N", "-P", os.TempDir()).CombinedOutput()
-
-	return err
 }
 
 // initializeCB will initialize Couchbase Server

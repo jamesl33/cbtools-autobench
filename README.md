@@ -290,9 +290,7 @@ ssh:
 blueprint:
   # Describing the cluster/dataset
   cluster:
-    # May be one of two things:
-    #   1) A build number (will be downloaded from latestbuilds)
-    #   2) A path to a package archive i.e. .deb/.rpm
+    # A path to a package archive i.e. .deb/.rpm
     #
     # Will be installed on all the cluster nodes
     package_path: ""
@@ -339,9 +337,7 @@ blueprint:
   backup_client:
     # Hostname of the server, used to connect via SSH (may be an IP address)
     host: ""
-    # May be one of two things:
-    #   1) A build number (will be downloaded from latestbuilds)
-    #   2) A path to a package archive i.e. .deb/.rpm
+    # A path to a package archive i.e. .deb/.rpm
     #
     # Will be installed on the backup client (will be disabled after install)
     package_path: ""
