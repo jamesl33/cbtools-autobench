@@ -40,7 +40,7 @@ var benchmarkCommand = &cobra.Command{
 	RunE:      benchmark,
 	Short:     "benchmark the cbbackupmgr tool performing either a backup or restore",
 	Use:       "benchmark {backup|restore}",
-	Args:      cobra.ExactValidArgs(1),
+	Args:      cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 	ValidArgs: []string{"backup", "restore"},
 }
 
