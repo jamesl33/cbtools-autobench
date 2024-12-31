@@ -388,7 +388,7 @@ func (b *BackupClient) purgeArchive(config *value.BenchmarkConfig) error {
 		return errors.Wrap(err, "failed to purge remote archive")
 	}
 
-	log.WithField("staging_directory", config.CBMConfig.Archive).Info("Purging local staging directory")
+	log.WithField("staging_directory", config.CBMConfig.ObjStagingDirectory).Info("Purging local staging directory")
 
 	return b.node.client.RemoveDirectory(config.CBMConfig.ObjStagingDirectory)
 }
