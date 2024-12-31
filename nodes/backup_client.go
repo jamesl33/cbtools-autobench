@@ -25,7 +25,6 @@ import (
 	"github.com/jamesl33/cbtools-autobench/value"
 
 	"github.com/apex/log"
-	"github.com/couchbase/tools-common/utils/maths"
 	"github.com/pkg/errors"
 )
 
@@ -123,7 +122,7 @@ func (b *BackupClient) BenchmarkBackup(ctx context.Context, config *value.Benchm
 
 	results := make(value.BenchmarkResults, 0, config.Iterations)
 
-	for iteration := 0; iteration < maths.Max(1, config.Iterations); iteration++ {
+	for iteration := 0; iteration < max(1, config.Iterations); iteration++ {
 		log.WithField("iteration", iteration+1).Info("Beginning 'cbbackupmgr' backup benchmark")
 
 		result, err := b.benchmarkBackup(config, cluster)
@@ -166,7 +165,7 @@ func (b *BackupClient) BenchmarkRestore(ctx context.Context, config *value.Bench
 
 	results := make(value.BenchmarkResults, 0, config.Iterations)
 
-	for iteration := 0; iteration < maths.Max(1, config.Iterations); iteration++ {
+	for iteration := 0; iteration < max(1, config.Iterations); iteration++ {
 		log.WithField("iteration", iteration+1).Info("Beginning 'cbbackupmgr' restore benchmark")
 
 		if !config.CBMConfig.Blackhole {

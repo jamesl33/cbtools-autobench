@@ -19,7 +19,7 @@ import (
 
 	"github.com/jamesl33/cbtools-autobench/nodes"
 
-	"github.com/couchbase/tools-common/sync/hofp"
+	"github.com/couchbase/tools-common/sync/v2/hofp"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
