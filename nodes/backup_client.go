@@ -289,7 +289,9 @@ func (b *BackupClient) createBackup(config *value.BenchmarkConfig, cluster *Clus
 
 	log.WithFields(fields).Info("Creating backup")
 
-	_, err := b.node.client.ExecuteCommand(config.CBMConfig.CommandBackup(cluster.ConnectionString(), ignoreBlackhole))
+	command := config.CBMConfig.CommandBackup(cluster.ConnectionString(config.CBMConfig.TLS), ignoreBlackhole)
+
+	_, err := b.node.client.ExecuteCommand(command)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to run backup")
 	}
@@ -348,7 +350,9 @@ func (b *BackupClient) restoreBackup(config *value.BenchmarkConfig, cluster *Clu
 
 	log.WithFields(fields).Info("Restoring backup")
 
-	_, err := b.node.client.ExecuteCommand(config.CBMConfig.CommandRestore(cluster.ConnectionString()))
+	command := config.CBMConfig.CommandRestore(cluster.ConnectionString(config.CBMConfig.TLS))
+
+	_, err := b.node.client.ExecuteCommand(command)
 
 	return err
 }

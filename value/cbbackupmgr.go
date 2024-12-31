@@ -56,6 +56,9 @@ type CBMConfig struct {
 	// Storage is the storage type that will be used. This is a hidden command in 'cbbackupmgr' and is unsupported.
 	Storage string `json:"storage,omitempty" yaml:"storage,omitempty"`
 
+	// TLS indicates whether to use the 'couchbases://' schema.
+	TLS bool `json:"tls,omitempty" yaml:"tls,omitempty"`
+
 	// Cloud related arguments.
 	ObjStagingDirectory       string `json:"obj_staging_directory,omitempty" yaml:"obj_staging_directory,omitempty"`
 	ObjAccessKeyID            string `json:"-" yaml:"obj_access_key_id,omitempty"`
