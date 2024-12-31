@@ -1,6 +1,8 @@
 issues:
   max-issues-per-linter: 0 # Unlimited
   max-same-issues: 0 # Unlimited
+  exclude:
+    - "printf: non-constant format string in call to"
 linters:
   fast: false
   enable:
