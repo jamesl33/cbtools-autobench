@@ -45,7 +45,7 @@ Below is an example use case for `cbtools-autobench` using the following configu
 ```yaml
 ssh:
   username: "root"
-  private_key: "..."
+  private_key: "/root/.ssh/id_rsa"
 blueprint:
   cluster:
     package_path: "/tmp/couchbase-server-enterprise_7.0.0-5160-ubuntu18.04_amd64.deb"
